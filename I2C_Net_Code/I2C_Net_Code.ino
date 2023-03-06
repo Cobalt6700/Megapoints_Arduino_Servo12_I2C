@@ -1,4 +1,4 @@
-#include <wire.h>
+#include <Wire.h>
 HardwareSerial &Terminal = Serial;
 
 // Define Number of Servo Controllers
@@ -127,7 +127,7 @@ void Send_data_SC12(uint8_t SCnum){
             Terminal.println(F("-----------------------------------"));
             Terminal.print(F("Data sent to SC:"));
             Terminal.println(SCnum);
-            Terminal.print(F("SC Address:")); Terminal.print(IOCA[SCnum]);
+            Terminal.print(F("SC Address:")); Terminal.print(SC12_ADDR[SCnum]);
             Terminal.println();
 			Terminal.print(F("output_b1_SC ")); Terminal.print(SCnum); Terminal.print(F(" OLD: ")); for (char b = 0; b < 8; b++) { Terminal.print(bitRead(servo_output_prev[SCnum], b)); }
 			Terminal.print(F("\t"));
@@ -172,7 +172,7 @@ void setup(){
 
     pinMode(TRANSMIT_LED, OUTPUT); 
 
-    for ( i = 0; i < numInputs, i++){
+    for (uint8_t  i = 0; i < numInputs; i++){
         pinMode(Input_pin[i], INPUT_PULLUP);
     }
 
@@ -181,13 +181,19 @@ void setup(){
 void loop(){
     // Read Input states 
     for (uint8_t SCnum = 0; SCnum < numSCs; SCnum++) {
+        // Get the data from the inputs and store to a local variable
         Handle_inputs(SCnum);
     }
         
     // Action them to the correct Servo Controller
-    for (uint8_t SCnum = 0; SCnum < numSCs; SCnum++) {        
+    for (uint8_t SCnum = 0; SCnum < numSCs; SCnum++) {    
+        // Read the data from the local input variables and save it to the output variable    
         Handle_data_SC12(SCnum);
+        // If the out data has changed since we last sent it, send the new data.
+        // Otherwise, wait for new data. This can be removed - it is in place to prevent 
+        // overloading the I2CNet
         if ( servo_output[SCnum] != servo_output_prev[SCnum] ){
+            // Send data to relevent Servo Controller
             Send_data_SC12(SCnum); 
         }  
     } 

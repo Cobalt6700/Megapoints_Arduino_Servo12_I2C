@@ -7,6 +7,10 @@ HardwareSerial &Terminal = Serial;
 // Comment out line to stop I2C data being printed to Terminal
 #define NOTIFY_I2C_DATA
 
+// Comment out line to remove input state inversion
+// They are inverted as 'INPUT_PULLUP' gives a us a 1 for OFF and 0 for ON.
+#define INVERT_INPUTS
+
 // Use an LED to show when data is transmitted
 #define TRANSMIT_LED 13
 
@@ -92,7 +96,11 @@ const uint16_t transmitDelay = 10;
 // Read the Inputs and save them to the Input_state array
 void Handle_inputs(uint8_t SCnum){ 
     for (uint8_t i = 0; i < numInputs; i++){
-        uint8_t state = !digitalRead(Input_pin[i]);        
+        #if defined(INVERT_INPUTS)
+            uint8_t state = !digitalRead(Input_pin[i]);  
+        #else
+            uint8_t state = digitalRead(Input_pin[i]);  
+        #endif      
         bitWrite( Input_state[SCnum], i, state);
     }
 }
@@ -129,13 +137,13 @@ void Send_data_SC12(uint8_t SCnum){
             Terminal.println(SCnum);
             Terminal.print(F("SC Address:")); Terminal.print(SC12_ADDR[SCnum]);
             Terminal.println();
-			Terminal.print(F("output_b1_SC ")); Terminal.print(SCnum); Terminal.print(F(" OLD: ")); for (char b = 0; b < 8; b++) { Terminal.print(bitRead(servo_output_prev[SCnum], b)); }
-			Terminal.print(F("\t"));
-			Terminal.print(F("output_b2_SC ")); Terminal.print(SCnum); Terminal.print(F(" OLD: ")); for (char b = 8; b < 16; b++) { Terminal.print(bitRead(servo_output_prev[SCnum], b)); }
-			Terminal.println();
-			Terminal.print(F("output_b1_SC ")); Terminal.print(SCnum); Terminal.print(F(" NEW: ")); for (char b = 0; b < 8; b++) { Terminal.print(bitRead(servo_output[SCnum], b)); }
-			Terminal.print(F("\t"));
-			Terminal.print(F("output_b2_SC ")); Terminal.print(SCnum); Terminal.print(F(" NEW: ")); for (char b = 8; b < 16; b++) { Terminal.print(bitRead(servo_output[SCnum], b)); }
+            Terminal.print(F("output_b1_SC ")); Terminal.print(SCnum); Terminal.print(F(" OLD: ")); for (char b = 0; b < 8; b++) { Terminal.print(bitRead(servo_output_prev[SCnum], b)); }
+            Terminal.print(F("\t"));
+            Terminal.print(F("output_b2_SC ")); Terminal.print(SCnum); Terminal.print(F(" OLD: ")); for (char b = 8; b < 16; b++) { Terminal.print(bitRead(servo_output_prev[SCnum], b)); }
+            Terminal.println();
+            Terminal.print(F("output_b1_SC ")); Terminal.print(SCnum); Terminal.print(F(" NEW: ")); for (char b = 0; b < 8; b++) { Terminal.print(bitRead(servo_output[SCnum], b)); }
+            Terminal.print(F("\t"));
+            Terminal.print(F("output_b2_SC ")); Terminal.print(SCnum); Terminal.print(F(" NEW: ")); for (char b = 8; b < 16; b++) { Terminal.print(bitRead(servo_output[SCnum], b)); }
             Terminal.println();
             }
 		#endif
